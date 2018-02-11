@@ -9,7 +9,7 @@ def Actions(key=None,value=None,filename='storage.data'):
 	storage_path = os.path.join(tempfile.gettempdir(), filename)
 
 	if os.path.exists(storage_path):
-		with open(storage_path, "r+") as f:
+		with open(storage_path, "r") as f:
 			readJson = json.load(f)
 	else:
 		with open(storage_path, "w") as f:

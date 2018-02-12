@@ -19,6 +19,7 @@ def clearData(data,minitem = 2,maxitem = 2,maxval = 12,sep = ',',bool = False):
 
 	if bool:
 		arr = arr[:maxitem]
+		arr = arr + [0]*(maxitem - len(arr)) if len(arr) < maxitem else arr
 		err_flag = []
 		[err_flag.append(i) for i in arr if i not in [0,1]]
 		if err_flag:

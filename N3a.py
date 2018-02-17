@@ -67,7 +67,7 @@ class main():
 			
 		result = self.FilterTweets(new_tweets)
 		if result['len']:
-			self._alltweets.append(result['local_tweets_arr'])
+			self._alltweets += result['local_tweets_arr']
 		max_id = result['max_id']	
 
 		while len(new_tweets) > 0:
@@ -75,7 +75,7 @@ class main():
 			
 			result = self.FilterTweets(new_tweets)
 			if result['len']:
-				self._alltweets.append(result['local_tweets_arr'])
+				self._alltweets += result['local_tweets_arr']
 			max_id = result['max_id']	
 	
 	def auth(self,authdict = None):

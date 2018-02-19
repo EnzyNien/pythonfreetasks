@@ -40,7 +40,7 @@ class main():
 		#print(self.matrix)
 		#print(self.data)
 		
-		#save bottom rom sum
+		#save bottom row sum
 		x_range = list(range(1,self.M+1))
 		y=self.N-1
 		for x in x_range:

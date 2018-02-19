@@ -55,8 +55,8 @@ class main():
 			self.data[y][x] = self.matrix[y][x] + self.data[y+1][x] 
 			self.xy_set.add((y,x))
 
-		#(0,5) x=5 y=0 - sum for right top coner
-		result = self.FindMaxSum((0,5))
+		#(0,self.M) x=self.M y=0 - sum for right top coner
+		result = self.FindMaxSum((0,self.M))
 
 		with open('turtle.out','w') as turtle_out:
 			turtle_out.write(str(result))

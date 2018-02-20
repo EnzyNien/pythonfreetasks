@@ -14,7 +14,6 @@ class main():
 
 	def formatRow(self,row):
 		format_line = ''
-		word_list = row.replace('\n','').split(' ')
 		re_result = re.findall(self.regex,row) #find all groups
 		for group in re_result:
 			if group[0] in self.dict_word_set: #in find word in dict in [0] group index

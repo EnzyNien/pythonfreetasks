@@ -1,3 +1,4 @@
+# coding: utf8
 import re
 
 class main():
@@ -14,6 +15,7 @@ class main():
 
 	def formatRow(self,row):
 		format_line = ''
+		word_list = row.replace('\n','').split(' ')
 		re_result = re.findall(self.regex,row) #find all groups
 		for group in re_result:
 			if group[0] in self.dict_word_set: #in find word in dict in [0] group index
@@ -27,7 +29,13 @@ class main():
 		self.dict_word_set.clear()
 		with open(self.dict_file,'r') as df:
 			for line in df.readlines():
-				self.dict_word_set.add(line.replace('\n','').strip())
+				re_result = re.match(self.dict_regex,line) #find word by re
+				re_result = re_result.string.replace('\n','').strip().encode('ansi').decode('utf-8').strip() #if line in utf-8
+				if re_result.startswith('\ufeff'):
+					print(f'- input dict word {re_result} may be in UTF-8. In the sequence will be added two versions of the word')
+					self.dict_word_set.add(re_result)
+					re_result = re_result.replace('\ufeff','') # delete \ufeff if line in utf-8
+				self.dict_word_set.add(re_result)
 
 	def read_row_gen(self):
 		with open(self.text_file, 'r') as tf:
@@ -35,10 +43,16 @@ class main():
 				line = tf.readline()
 				if not line:
 					break
+				try:
+					line = line.replace('\n','').strip().encode('ansi').decode('utf-8').strip() #if line in utf-8
+					line = line.replace('\ufeff','')				
+				except:
+					pass
 				yield line
 
 	def write_row_gen(self):
 		with open('result.html','a') as res:
+			res.write(self.makeHtmlWrap())  #add html head
 			while True:
 				row = yield
 				res.write(self.formatRow(row))
@@ -55,7 +69,6 @@ class main():
 
 		write_gen = self.write_row_gen() #creata generator for write html file
 		write_gen.send(None) #start generator
-		write_gen.send(self.makeHtmlWrap()) #add html head
 		try:
 			for row in self.read_row_gen():
 				write_gen.send(self.formatRow(row)) #add formated row
@@ -77,6 +90,7 @@ class main():
 		self.text_file = text_file
 		self.dict_file = dict_file
 		self.regex = re.compile(r'(\w*)(\W*)') #make "Aaaa, BBB - ccc" to group(0) = ('Aaaa',',') group(1) = ('BBB',' - ') group(3) = ('ccc',) 
+		self.dict_regex = re.compile(r'\w')
 		self.dict_word_set = set() #set for save dict words
 		self.load_dict()
 		self.make_html()

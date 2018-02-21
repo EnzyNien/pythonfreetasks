@@ -1,5 +1,6 @@
 # coding: utf8
 import re
+import sys
 
 class main():
 
@@ -30,11 +31,15 @@ class main():
 		with open(self.dict_file,'r') as df:
 			for line in df.readlines():
 				re_result = re.match(self.dict_regex,line) #find word by re
-				re_result = re_result.string.replace('\n','').strip().encode('ansi').decode('utf-8').strip() #if line in utf-8
-				if re_result.startswith('\ufeff'):
-					print(f'- input dict word {re_result} may be in UTF-8. In the sequence will be added two versions of the word')
-					self.dict_word_set.add(re_result)
-					re_result = re_result.replace('\ufeff','') # delete \ufeff if line in utf-8
+				re_result = re_result.string.replace('\n','').strip()
+				try:
+					re_result = re_result.encode('ansi').decode('utf-8').strip() #if line in utf-8
+					if re_result.startswith('\ufeff'):
+						print(f'- input dict word {re_result} may be in UTF-8. In the sequence will be added two versions of the word')
+						self.dict_word_set.add(re_result)
+						re_result = re_result.replace('\ufeff','') # delete \ufeff if line in utf-8
+				except:
+					pass
 				self.dict_word_set.add(re_result)
 
 	def read_row_gen(self):

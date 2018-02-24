@@ -100,7 +100,7 @@ class image_worker():
 	def calc_decode_format(size):
 		Y, X = size
 		XY = X*Y
-		max_item = len(str(XY).encode()) + 2
+		max_item = len(str(XY).encode())+2
 		return (Y,X,int(XY),(int(XY/max_item),int(max_item)))
 
 	@staticmethod
@@ -137,7 +137,7 @@ class image_worker():
 		#idx = np.load('decode_arr.npy')
 		idx = np.apply_along_axis(image_worker.return_idxArr,1,idx,t)
 		idx = np.ravel(idx)
-		np.save('decode_arr',idx)
+		#np.save('decode_arr',idx)
 		colors_arr = np.stack((colors,idx,mask),1)
 		red = np.delete(colors_arr[colors_arr[:,2] == 1],2,1)
 		green = np.delete(colors_arr[colors_arr[:,2] == 2],2,1)

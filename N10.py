@@ -15,6 +15,7 @@ class TrasformDocxToExcel():
 		sheet = wb.active
 
 		for i,q in enumerate(self._data):
+			sheet.cell(row=i+1, column=1).value = q.get('qtype',"")
 			sheet.cell(row=i+1, column=2).value = q.get('question',"")
 			for j,answer in enumerate(q.get('answers',[])):
 				text = '*' + answer[1] if answer[2] else answer[1]
@@ -51,14 +52,18 @@ class TrasformDocxToExcel():
 		
 		question_text = ''
 		answers_arr = []
+		qtype = 0
+
 		print(f'Start parsing {self.doc_name} ===>')
 		for par in doc.paragraphs:
 			result = regex.match(par.text)
 			if par.text.strip() == '':
 				if answers_arr:
-					self._data.append({'question':question_text,'answers':answers_arr})
+					qtype_str = 'MC' if qtype == 1 else 'MR' 
+					self._data.append({'question':question_text,'answers':answers_arr,'qtype':qtype_str})
 				answers_arr = []
 				question_text = ''
+				qtype = 0
 				continue
 
 			if result is None:
@@ -66,7 +71,9 @@ class TrasformDocxToExcel():
 			else:
 				count, resp = result.groups()
 				correct = True if (par.runs[0].font.highlight_color) == WD_COLOR_INDEX.YELLOW else False
-				answers_arr.append([count,resp,correct])	
+				qtype = qtype + 1 if correct else qtype
+				answers_arr.append([count,resp,correct])
+				
 		print(f'<=== Parding {self.doc_name} is finished')
 		return self
 

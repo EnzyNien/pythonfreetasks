@@ -14,8 +14,14 @@ class cook_book_class():
 			ingridients = input('Введите через запятую c пробелом наименование игредиента, количетво, единицу измерения: ')
 			ingridients= ingridients.lower().split(', ') 
 			if len(ingridients) == 3:
-				ingridients_arr.append({'ingridient_name':ingridients[0],'quantity':ingridients[1],'measure':ingridients[2]})	
-				count += 1
+				try:
+					ingridients_arr.append({'ingridient_name':ingridients[0],'quantity':int(ingridients[1]),'measure':ingridients[2]})
+				except ValueError:
+					print('Возможно вы не корректно ввели количество. Попробуйте еще раз.')
+				else:	
+					count += 1
+			else:
+				print('Возможно данные введены не корректно. Попробуйте еще раз.')
 		newdish[dish]['ingridient'] = ingridients_arr
 		with open(self.file_name, 'a') as json_:
 			json_.write(json.JSONEncoder().encode(newdish))

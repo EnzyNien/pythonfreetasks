@@ -30,7 +30,7 @@ class News():
 	def __init__(self,most_common=10):
 		self.most_common = most_common
 		self.file_names = [["newsafr.txt",""], ["newscy.txt",""], ["newsfr.txt",""], ["newsit.txt",""]]	#массив хранения имен файлов и кодировок
-		self.pattern = re.compile('[\w]{6,}') #регулярное выражение для поиска слов в строке у которых больше шести букв
+		self.pattern = re.compile('[\w]{6,}') #регулярное выражение для поиска слов в строке у которых >= 6 букв
 		self.encode()
 		self.pars()
 

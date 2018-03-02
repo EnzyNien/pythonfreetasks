@@ -17,7 +17,7 @@ class artist():
 		return set(product(range(x0,x1),range(y0,y1)))
 
 
-	def __init__(self, file_name = 'artist.txt'):
+	def __init__(self, file_name = 'input.txt'):
 
 		self.rectangles_set = set()
 		with open(file_name,'r') as file_:

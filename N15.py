@@ -64,7 +64,7 @@ class TestWindow(QWidget):
 
 	#декорируем обработчик, что бы создать поток
 	@thread_factory(func_dict=	{'work_func':'calculate2'},
-					data=		{'calculate': {'func':'b_start_thread2'}})
+					data=		{'calculate2': {'func':'b_start_thread2'}})
 	def on_clicked_b_start_thread2(self):
 		self.b_start_thread2.setDisabled(True) 
 

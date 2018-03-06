@@ -25,13 +25,17 @@ class dict_update():
 	def processBlock(self,block,down_level = False):
 		childrens = block.getchildren()
 		for children in childrens:
+			added = False
 			if children.tag == self.get_tag_with_ns('form'):
 				try:
 					orth_ = children['orth']
 					if orth_.text in self.infinitive_arr:
-						otehr_words = self.other_dict[orth_.text]	
-						for word in otehr_words:
+						added = True
+						other_words = self.other_dict[orth_.text]	
+						for word in other_words:
 							self.addElement(block,word)
+					else:
+						added = False
 
 				except AttributeError:
 					if not down_level:
@@ -43,6 +47,9 @@ class dict_update():
 				else:
 					if down_level:
 						self.error_log.append([{'typeError':'FOUND', 'line':str(children.sourceline), 'massage':'Attr - orth found in child element'}])	
+					elif added and not down_level:
+						info = 'Attr - orth found. New elemens new items added: {}'.format(", ".join(other_words))
+						self.error_log.append([{'typeError':'ALL OK', 'line':str(children.sourceline), 'massage':info}])
 
 
 	def processCSV(self,iterator):

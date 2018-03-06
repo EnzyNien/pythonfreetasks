@@ -11,6 +11,7 @@ class Monte_Karlo():
 			points_am = int(points_am)
 		except:
 			err = "error converting value of points_am to int type"
+			raise ValueError(err)
 			return
 
 		random.seed(seed)
@@ -31,7 +32,8 @@ class Monte_Karlo():
 			mul = int(mul)
 			stop = int(stop)		
 		except:
-			err = "error converting some value to int type"
+			err = "error converting value of points_am to int type"
+			raise ValueError(err)
 			return
 
 		counts = count(1)
@@ -48,6 +50,7 @@ class Monte_Karlo():
 			points_am = int(points_am)
 		except:
 			err = "error converting value of points_am to int type"
+			raise ValueError(err)
 			return
 
 		points_am = points_am if points_am <= Monte_Karlo.stop_count else Monte_Karlo.stop_count
@@ -65,7 +68,8 @@ class Monte_Karlo():
 			mul = int(mul)
 			stop = int(stop)		
 		except:
-			err = "error converting some value to int type"
+			err = "error converting value of points_am to int type"
+			raise ValueError(err)
 			return
 
 		counts = count(1)

@@ -1,25 +1,25 @@
 import csv
-import codecs
 import json
 from lxml import etree, objectify
-from tei_reader import TeiReader
 
 class dict_update():
+
+	def clearData(self,result_data):
+		repls = [b' xmlns:py="http://codespeak.net/lxml/objectify/pytype"', b' py:pytype="TREE"',b' py:pytype="str"']
+		for repl in repls:
+			result_data = result_data.replace(repl,b'')
+		return result_data
 
 	def get_tag_with_ns(self, tag_name):
 		return '{%s}%s' % (self.namespase, tag_name)
 
-	def addElement(self, father, text_):
-		form_ = objectify.Element(self.get_tag_with_ns('form'),nsmap = {None:self.namespase})
-		orth_ = objectify.SubElement(form_, 'orth',nsmap = {None:self.namespase})
-		orth_[0] = text_
-
-		gramGrp_ = objectify.SubElement(form_, self.get_tag_with_ns('gramGrp'),nsmap = self.fullnamespase,)
-		pos_ = objectify.SubElement(gramGrp_, self.get_tag_with_ns('pos'),nsmap = self.fullnamespase)
-		pos_[0] = 'n'
-		gen_ = objectify.SubElement(gramGrp_, self.get_tag_with_ns('gen'),nsmap = self.fullnamespase)
-		gen_[0] = 'f'
-
+	def addElement(self, father, other_words):
+		attrib = {'type':'inflected'}
+		form_ = objectify.Element(self.get_tag_with_ns('form'),nsmap = self.fullnamespase, attrib=attrib)
+		form_.nsmap.pop('py')
+		for idx, word in enumerate(other_words):
+			orth_ = objectify.SubElement(form_, 'orth',nsmap = self.fullnamespase)
+			orth_[idx] = word
 		father.append(form_)
 
 	def processBlock(self,block,down_level = False):
@@ -32,8 +32,7 @@ class dict_update():
 					if orth_.text in self.infinitive_arr:
 						added = True
 						other_words = self.other_dict[orth_.text]	
-						for word in other_words:
-							self.addElement(block,word)
+						self.addElement(block,other_words)
 					else:
 						added = False
 
@@ -59,7 +58,7 @@ class dict_update():
 			self.infinitive_arr.append(row[0].strip())
 			self.other_dict.update({row[0]:[i.strip() for i in row[1:]]})
 
-	def pars(self,delimiter=';'):
+	def pars(self,delimiter=';',clear_data=True):
 		if not self.csv_name:
 			err = 'csv_name file name error' 
 			raise ValueError(err)
@@ -83,8 +82,10 @@ class dict_update():
 		for block in entry_:
 			self.processBlock(block)
 		with open('result.tei', 'wb') as f:
-			sss = etree.tostring(tei_,encoding='UTF-8',pretty_print=True)
-			f.write(sss)
+			result_data = etree.tostring(tei_,encoding='UTF-8',pretty_print=True)
+			if clear_data:
+				result_data = self.clearData(result_data)
+			f.write(result_data)
 		with open('eror_log.txt', 'w') as f:
 			json.dump(self.error_log,f)
 

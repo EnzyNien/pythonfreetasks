@@ -29,10 +29,11 @@ class Midnight():
 			print(self.tz_list)
 			return
 		if tz not in self.tz_list:
-			self.tz = get_localzone().zone
+			self.tz = get_localzone()
 		else:
-			self.tz  = tz
-		self.nowtime = self.roundTime(datetime.datetime.now())
+			self.tz  = pytz.timezone(tz)
+		nowtime_ = self.roundTime(datetime.datetime.now())
+		self.nowtime = self.tz.localize(nowtime_)
 
 def main():
 

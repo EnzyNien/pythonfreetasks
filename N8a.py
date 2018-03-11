@@ -9,6 +9,18 @@ from scipy import misc, ndimage
 
 class image_worker():
 
+	def setPassword(self):
+		self.password = ""
+		while True:
+			try:
+				pas_ = input('password: ').strip()
+				if pas_ == "":
+					raise ValueError()
+			except ValueError():
+				err = 'Incorrect pasword. Try again.'
+			else:	
+				self.password = pas_
+				break
 
 	#################################################################
 	def makeHash(self,password):
@@ -34,7 +46,11 @@ class image_worker():
 		return np.array(result,dtype=self.t)
 
 	def break_BytesToInt(self,data):
-		return int(''.join([str(i) for i in data]))
+		def f(i):
+			return '00'if i == 0 else str(i)
+
+		data = list(map(f, data))
+		return int(''.join(data))
 
 	def index_recovery(self,arr,size):
 		real_idx = arr[:,1]
@@ -76,7 +92,7 @@ class image_worker():
 	'''
 	def code_image(self, file_name = None, dir_name='result', seed = None, t='uint64'):
 		self.t = t
-
+		self.setPassword()
 		#чтение файла с помощью scipy в массив
 		try:
 			img = misc.imread(file_name)
@@ -105,10 +121,10 @@ class image_worker():
 		password_arr = self.makeHash(self.password)
 
 		#чтение из массива из файла для простоты отладки
-		#idx = np.load('data_.npy')
+		idx = np.load('data_.npy')
 		print(f'1. Make index adresses: {len_arr} items')
 		#процедура кодирования индекса пикселей
-		idx = np.apply_along_axis(self.make_idxArr,1,idx)
+		#idx = np.apply_along_axis(self.make_idxArr,1,idx)
 		#запись массива в файл указана для простоты отладки
 		np.save('data_',idx)
 
@@ -216,6 +232,9 @@ class image_worker():
 		self.t = t
 		res_list = []
 		format_set = set()
+
+		self.setPassword()
+
 		try:
 			dir_name, _, files = os.walk(dir_name).__next__()
 		except StopIteration:
@@ -300,22 +319,7 @@ class image_worker():
 		image = np.column_stack((red,green,blue)).reshape(Y,X,3).astype('uint8')
 		misc.imsave(os.path.join(dir_name,'DECODE_IMAGE.png'),image,format='png')
 
-	def __init__(self):
-		self.password = ""
-		while True:
-			try:
-				pas_ = input('password: ').strip()
-				if pas_ == "":
-					raise ValueError()
-			except ValueError():
-				err = 'Incorrect pasword. Try again.'
-			else:	
-				self.password = pas_
-				break
-			
-			
-		
-	
+
 f = image_worker() #создание объекта класса
 #f.code_image('image.jpg') #процедура кодирования
 f.decode_images() #процедура декодирования

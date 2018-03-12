@@ -1,6 +1,4 @@
 import re
-import operator
-
 class rules():
 
 	def transform(self, row):
@@ -74,8 +72,6 @@ class rules():
 		self.range0 = range(0,8)
 		self.range1 = range(8,16)
 	
-
-
 class form5to7():
 
 	def getRow(self, file_name):

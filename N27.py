@@ -167,6 +167,7 @@ def func6a(a=1,b=6):
 	min_ = min(list_)
 	print(min_)
 
+#7
 def func7(x=1):
 	while True:
 		try:

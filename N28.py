@@ -68,8 +68,9 @@ class HidemyName():
 		table = table.tbody
 		rows = table.find_all('tr')	
 		for row in rows:
-			ip = row.find('td',{'class':'tdl'})
-			port, country, maxtime, type_, anon, lastrecently = [i.text for i in ip.next_siblings]
+			ip_class = row.find('td',{'class':'tdl'})
+			ip = ip_class.text
+			port, country, maxtime, type_, anon, lastrecently = [i.text for i in ip_class.next_siblings]
 			
 			
 

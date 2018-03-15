@@ -4,9 +4,11 @@ import cfscrape
 import argparse
 import time
 from collections import OrderedDict as OD
-from collections import UserDict
 import re
-
+try:
+	from urlparse import urlparse
+except ImportError:
+	from urllib.parse import urlparse
 
 class HidemyName():
 
@@ -21,22 +23,23 @@ class HidemyName():
 				'accept-encoding':'gzip, deflate, wr',
 				'accept-language':'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
 				'content-type':'application/x-www-form-urlencoded; charset=UTF-8',
-				'referer':'https://hidemy.name/ru/proxy-list/',
 				'user-agent':'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.186 Safari/537.36',
 				'upgrade-insecure-requests':'1'}
 
+		
+
 	def getRequestData(self):
-		data = OD({})
-		data.update({'maxtime':self.speed}) if self.speed > 0 else data
-		data.update({'type':self.types}) if len(self.types) <4 else data
-		data.update({'anon':self.anonymity}) if len(self.anonymity) <4 else data
-		return data
+		postfix = "?"
+		m = 'maxtime={}'.format(self.speed) if self.speed > 0 else ''
+		t = 'type={}'.format(self.types) if len(self.types) <4 else ''
+		a = 'anon={}'.format(self.anonymity) if len(self.anonymity) <4 else ''
+		return postfix + '&'.join([i for i in [m,t,a] if i != ""])
 
 	def compilInputList(self,data,dict_):
 		if not data or not set(data).issubset(set(dict_.keys())):
 			return ''.join([dict_[key] for key in dict_.keys()])
 		else:
-			return ''.join([dict_[key] for key in data].split(''))	
+			return ''.join([dict_[key] for key in data])	
 
 	def compilInputInt(self,data,name):
 		try:
@@ -54,13 +57,13 @@ class HidemyName():
 		url = HidemyName.url if url is None else url
 
 		Session.headers = self.getRequestHeaders()
-		Session.data = self.getRequestData()
+		postfix = self.getRequestData()
 		if start is not None:
-			Session.data.update({'start':str('start')})
-
+			postfix += '&start={}'.format(start)
+		url += postfix
 		scraper = cfscrape.create_scraper(Session,delay=5)
 
-		resp = scraper.request('get',HidemyName.url)
+		resp = scraper.request('get',url,headers=scraper.headers)#,data=scraper.data)
 		return bs.BeautifulSoup(resp.text,'lxml')
 
 	def pars(self,soup):
@@ -72,45 +75,43 @@ class HidemyName():
 			ip = ip_class.text
 			port, country, maxtime, type_, anon, lastrecently = [i.text for i in ip_class.next_siblings]
 			
-			
-
-	def getPages(self, url=None):
-		Session = requests.session()
+	def getPages(self):
 		pagelist = []
-		url = HidemyName.url if url is None else url
-		soup = self.connect(Session, url)
+		soup = self.connect()
 		pagination = soup.find('div',{'class':'proxy__pagination'})
 		pagination = pagination.ul
 		pages = pagination.find_all('li')
-		#find max page
-		endpage = pages[-1]
-		endpage_number = int(endpage.text)
-		#get max page number
-		endpage_link = endpage.a.get('href',None)
-		if endpage_link is None:
-			raise ValueError('error find endpage in pagination')
-			return
-		endslice = self.pattern.search(endpage_link)
-		groupdict = endslice.groupdict()
-		#find max page slice
-		endslice = groupdict.get('slice',None)
-		if endslice is None:
-			raise ValueError('error find endpage slice')
-			return
-		global_slice = int(int(endslice)/(endpage_number-1))
-		#create slice list
-		pagelist = [None] + [int(global_slice)*i for i in range(1,endpage_number)]
+		if len(pages) > 1:
+			#find max page
+			endpage = pages[-1]
+			endpage_number = int(endpage.text)
+			#get max page number
+			endpage_link = endpage.a.get('href',None)
+			if endpage_link is None:
+				raise ValueError('error find endpage in pagination')
+				return
+			endslice = self.pattern.search(endpage_link)
+			groupdict = endslice.groupdict()
+			#find max page slice
+			endslice = groupdict.get('slice',None)
+			if endslice is None:
+				raise ValueError('error find endpage slice')
+				return
+			global_slice = int(int(endslice)/(endpage_number-1))
+			#create slice list
+			pagelist = [None] + [int(global_slice)*i for i in range(1,endpage_number)]
+		else:
+			pagelist = [None]
 		time.sleep(1)
 		for page in pagelist:
 			#first page if already load
 			if page is None:
 				self.pars(soup)	
 			else:
-				soup = self.connect(Session, url, page)
+				soup = self.connect(url=url, start=page)
 				self.pars(soup)
 
-		
-	def __init__(self,types=None,speed=10,anonymity=None,lastrecently=30,ret='dict'):
+	def __init__(self,types=None,speed=0,anonymity=None,lastrecently=None,ret='dict'):
 		
 		self.types = self.compilInputList(types,HidemyName.type_)
 		self.anonymity = self.compilInputList(types,HidemyName.anonymity_)
@@ -138,5 +139,5 @@ def main():
 
 if __name__ == '__main__':
 	#P = main()
-	P = HidemyName(speed=10)
+	P = HidemyName(types=['http'],speed=800)
 	P.getPages()

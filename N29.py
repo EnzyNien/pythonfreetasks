@@ -44,6 +44,14 @@ class MainClass():
 		query.exec("select * from words where low_word == '{}' ORDER BY word ASC".format(text))
 		return query
 
+	def selectByList(self,text):
+		if not text:
+			return None
+		query = QtSql.QSqlQuery()
+		query.exec('select * from words where _rowid_ in ({})'.format(text))
+		return query
+	
+
 	def insertBy(self,word,definition):
 		if not word or not definition:
 			return None
@@ -65,6 +73,32 @@ class MainClass():
 		query.exec("delete from words where _rowid_ = {}".format(idx))
 		return query
 
+	def fillTable(self,listrow):
+		self.mainWindow.tableWidget.setRowCount(len(listrow))
+		for idx, row in enumerate(listrow):
+			self.mainWindow.tableWidget.setItem(idx, 0, QtWidgets.QTableWidgetItem(row[0]))
+			self.mainWindow.tableWidget.setItem(idx, 1, QtWidgets.QTableWidgetItem(row[1]))
+			self.mainWindow.tableWidget.setItem(idx, 2, QtWidgets.QTableWidgetItem(row[2]))
+
+	def updateTable(self):
+		resultlist = []
+		rows = self.mainWindow.tableWidget.rowCount()
+		idlist = [str(self.mainWindow.tableWidget.item(row,2).text()) for row in range(rows)]
+		idlist = ','.join(idlist)
+		query = self.selectByList(idlist)
+		if query is None:
+			return
+		if query.isActive():
+			self.mainWindow.tableWidget.clear()
+			self.mainWindow.mainWindow_textedit_definition.clear()
+			query.first()
+			count = 0
+			while query.isValid():
+				resultlist.append([query.value('word'),query.value('definition'),str(query.value('index'))])
+				count += 1
+				query.next()
+			self.fillTable(resultlist)
+
 	def open_add_word_window(self):
 		self.editWindow.editWindow_lineEdit.clear()
 		self.editWindow.textEdit.clear()
@@ -84,11 +118,7 @@ class MainClass():
 				resultlist.append([query.value('word'),query.value('definition'),str(query.value('index'))])
 				count += 1
 				query.next()
-			self.mainWindow.tableWidget.setRowCount(len(resultlist))
-			for idx, row in enumerate(resultlist):
-				self.mainWindow.tableWidget.setItem(idx, 0, QtWidgets.QTableWidgetItem(row[0]))
-				self.mainWindow.tableWidget.setItem(idx, 1, QtWidgets.QTableWidgetItem(row[1]))
-				self.mainWindow.tableWidget.setItem(idx, 2, QtWidgets.QTableWidgetItem(row[2]))
+			self.fillTable(resultlist)
 		
 	def tab_item_one_click_event(self, item):
 		data_ = self.mainWindow.tableWidget.item(item.row(),1).text()
@@ -102,13 +132,13 @@ class MainClass():
 		if dialog.exec() == 0:
 			return	
 		row_ = self.mainWindow.tableWidget.selectionModel().currentIndex().row()
-		idx_ = self.mainWindow.tableWidget. item(row_,2).text()
+		idx_ = self.mainWindow.tableWidget.item(row_,2).text()
 		definition = self.mainWindow.mainWindow_textedit_definition.toPlainText()
 		query = self.updateBy(int(idx_),definition)
 		if query is None:
 			return
 		if query.isActive():
-			pass
+			self.updateTable()
 
 	def del_word(self):
 		dialog = self.showQuestion('Удалить слово?')
@@ -121,6 +151,7 @@ class MainClass():
 			return
 		if query.isActive():
 			self.mainWindow.mainWindow_textedit_definition.clear()
+			self.updateTable()
 
 	def add_word(self):
 		dialog = self.showQuestion('Добавить слово?')

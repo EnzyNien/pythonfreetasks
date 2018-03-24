@@ -1,5 +1,6 @@
 import re
 from collections import Counter
+import random 
 
 #1
 class FindEntryPerc():

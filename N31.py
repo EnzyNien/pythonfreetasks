@@ -41,8 +41,9 @@ class Maxdigit():
 	def inputData(self):
 		while True:
 			try:
+				n = int(input('enter number of numbers: '))
 				rows = input('indicate numbers with a space: ')
-				rows = [max(int(j) for j in list(i)) for i in rows.split(' ')]
+				rows = [max(int(j) for j in list(i)) for i in rows.split(' ')][:n]
 			except:
 				print('value conversion error. Try again\n')		
 			else:

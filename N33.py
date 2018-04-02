@@ -60,6 +60,10 @@ class image_worker():
 
 		images = list(map(self.concat, images))	
 
+		#создание пустой директории
+		if not os.path.exists(dir_name):
+			os.makedirs(dir_name)
+
 		for idx, image in enumerate(images):
 			real_img = np.full_like(image,fill_value=0,dtype=self.t)
 			real_img[image==True] = 255

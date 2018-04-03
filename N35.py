@@ -54,6 +54,7 @@ F.A='aaa'
 F.B='bbb'
 F.__setattr__('C','ccc')
 F.__setattr__('E','eee')
+F.__delattr__('D')
 F.F = 'fff'
 
 #словарь context остался неизменным с прошлой печати

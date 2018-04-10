@@ -174,7 +174,7 @@ for row in names:
 		print(f'{idx}) tank_name: {tank_name}, tank_id: {tank_id}\nwins/battles: {wins} / {battles}')
 		
 		if tank_id in write_tanks:
-			print(f'previously saved image from: {image_url}/n')
+			print(f'previously saved image from: {image_url}\n')
 		else:
 			image_url = tank_description['images']['big_icon']
 			image_name = image_url.split('/')[-1]
@@ -183,7 +183,7 @@ for row in names:
 				with open(os.path.join(Wg.dir_name,image_name), 'wb') as f:
 					f.write(response.content)
 					write_tanks.append(tank_id)
-					print(f'download image from: {image_url}/n')
+					print(f'download image from: {image_url}\n')
 			else:
-				print(f'error download image from: {image_url}/n')
+				print(f'error download image from: {image_url}\n')
 		

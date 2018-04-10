@@ -1,7 +1,6 @@
 from requests import request
 from functools import wraps
 from collections import OrderedDict 
-from docx import Document
 import os
 from time import sleep
 

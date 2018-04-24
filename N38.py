@@ -1,11 +1,29 @@
-
-def _cmp(x, y):
-    return 0 if x == y else 1 if x > y else -1
-
-
 class Time():
 
     __slots__ = '_hour', '_minute', '_second'
+
+    @property
+    def times_of_day(self):
+        NIGHT_1 = Time(0,0,1)
+        NIGHT_2 = Time(6,0)
+
+        MORNING_1 = Time(6,0,1)
+        MORNING_2 = Time(12,0)
+
+        DAY_1 = Time(12,0,1)
+        DAY_2 = Time(18,0)
+
+        EVENING_1 = Time(18,0,1)
+        EVENING_2 = Time(0,0)
+
+        if self > NIGHT_1 and self < NIGHT_2:
+            return "NIGHT"
+        elif self > MORNING_1  and self < MORNING_2:
+            return "MORNING"
+        elif self > DAY_1  and self < DAY_2:
+            return "DAY"
+        elif self > EVENING_1:
+            return "EVENING"
 
     @property
     def hour(self):
@@ -82,6 +100,10 @@ class Time():
             raise ValueError('second must be in 0..59', second)
         return hour, minute, second
 
+    @staticmethod
+    def _global_cmp(x, y):
+        return 0 if x == y else 1 if x > y else -1
+
     def delta(self, other):
         assert isinstance(other, Time)
         s_ss = self._hour * 60 * 24 + self._minute * 60 + self._second
@@ -92,19 +114,10 @@ class Time():
         new_ss = (result - 60 * 24 * new_hh - new_mm * 60)
         return Time(new_hh, new_mm, new_ss)
 
-    def _cmp(self, other, allow_mixed=False):
+    def _cmp(self, other):
         assert isinstance(other, Time)
-        return _cmp((self._hour, self._minute, self._second),
+        return Time._global_cmp((self._hour, self._minute, self._second),
                     (other._hour, other._minute, other._second))
-
-        if allow_mixed:
-            return 2  # arbitrary non-zero value
-        else:
-            raise TypeError("cannot compare naive and aware times")
-        myhhmm = self._hour * 60 + self._minute
-        othhmm = other._hour * 60 + other._minute
-        return _cmp((myhhmm, self._second),
-                    (othhmm, other._second))
 
     def __new__(cls, hour=0, minute=0, second=0):
         hour, minute, second = Time._check_time_fields(hour, minute, second)
@@ -116,7 +129,7 @@ class Time():
 
     def __eq__(self, other):
         if isinstance(other, Time):
-            return self._cmp(other, allow_mixed=True) == 0
+            return self._cmp(other) == 0
         else:
             return False
 
@@ -151,15 +164,19 @@ class Time():
             self._second,
             timespec)
 
-
-if __name__ is '__name__':
+if __name__ is '__main__':
     T1 = Time(22, 20, 59)
     T2 = Time(7, 10, 20)
     T3 = Time(7, 10, 20)
 
+    T4 = Time(12, 10, 13)
+    T5 = Time(5, 50, 0)
+
     print(f"T1 = {T1.__str__('ampm')}")
     print(f"T2 = {T2.__str__('seconds')}")
     print(f"T3 = {T3.__str__('text')}")
+    print(f"T4 = {T4.__str__('seconds')}")
+    print(f"T5 = {T5.__str__('seconds')}")
     print('\n')
     print(f'T1 == T2 = {T1 == T2}')
     print(f'T3 == T2 = {T3 == T2}')
@@ -172,3 +189,9 @@ if __name__ is '__name__':
     print(f'Delta T1 & T2 = {T1.delta(T2)}')
     print(f'Delta T3 & T1 = {T3.delta(T1)}')
     print(f'Delta T3 & T3 = {T3.delta(T3)}')
+    print('\n')
+    print(f'Time of day T1 = {T1.times_of_day}')
+    print(f'Time of day T2 = {T2.times_of_day}')
+    print(f'Time of day T3 = {T3.times_of_day}')
+    print(f'Time of day T4 = {T4.times_of_day}')
+    print(f'Time of day T5 = {T5.times_of_day}')

@@ -12,13 +12,19 @@ class Instagram_FullHdPhoto():
             resp_j = resp.json()
             '''['user'] -> ['hd_profile_pic_url_info'] ->  ['url']
                      -> ['hd_profile_pic_versions'] ->  [['url']]'''
-            image_url = resp_j['user']['hd_profile_pic_url_info']['url']
-            resp_url = request('get', image_url)
-            if resp_url.status_code == 200:
-                image_type = image_url.split('.')[-1]
-                with open(f'id{id}.{image_type}', 'wb') as f:
-                    f.write(resp_url.content)
-                    print(f'download image from: {image_url}')
+            try:
+                image_url = resp_j['user']['hd_profile_pic_url_info']['url']
+                username = resp_j['user']['username']
+            except BaseException:
+                print(
+                    "error path: ['user'] -> ['hd_profile_pic_url_info'] ->  ['url']")
+            else:
+                resp_url = request('get', image_url)
+                if resp_url.status_code == 200:
+                    image_type = image_url.split('.')[-1]
+                    with open(f'id{id}_{username}.{image_type}', 'wb') as f:
+                        f.write(resp_url.content)
+                        print(f'download image from: {image_url}')
         else:
             print(f'download photo error.\n bad url: {photo_url}\n')
 
@@ -33,19 +39,38 @@ class Instagram_FullHdPhoto():
             except BaseException:
                 print('id find error')
                 return None
+        elif resp.status_code == 404:
+            print('responce status code is 404')
         else:
             return None
 
-    def __init__(self, user_name=None):
-        id_pattern = re.compile(r'profilePage_(?P<id>\d+)')
-        if user_name is None:
-            raise ValueError('user name must be str type')
-        user_id = Instagram_FullHdPhoto.get_user_id(user_name, id_pattern)
+    def make_work(self, user_name):
+        user_id = Instagram_FullHdPhoto.get_user_id(user_name, self.id_pattern)
         if user_id is not None:
             Instagram_FullHdPhoto.get_full_hd_photo(user_id)
         else:
             print('download photo error. user_id is None')
 
+    def console(self):
+        print('for quit input ctrl+break')
+        while True:
+            user_name = input('input Instagram username: ')
+            self.make_work(user_name.strip())
+
+    def __init__(self, console=True, user_name=None):
+        self.id_pattern = re.compile(r'profilePage_(?P<id>\d+)')
+        if console:
+            self.console()
+        else:
+            if user_name is None:
+                raise ValueError('user name must be str type')
+            self.make_work(user_name)
+
 
 if __name__ == '__main__':
-    Instagram_FullHdPhoto('schwarzenegger')
+
+    # with console
+    Instagram_FullHdPhoto()
+
+    # without console
+    #Instagram_FullHdPhoto(console = False, user_name = 'schwarzenegger')

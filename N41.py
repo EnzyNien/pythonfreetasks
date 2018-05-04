@@ -3,38 +3,46 @@ import re
 import codecs
 import chardet
 import pandas as pd
-from urllib.parse import urlparse, parse_qs
+from itertools import zip_longest
 
 
 class Classification():
 
     @property
+    def create_table(self):
+        self.mainTable = pd.DataFrame(columns=self.columns)
+        self.mainTable.to_csv(
+            sep=',',
+            header=True,
+            index=False,
+            mode='w',
+            encoding='utf-8')
+
+    @property
     def clear_table(self):
         self.mainTable.drop(self.mainTable.index, inplace=True)
 
+    def compare(self, val, cmp):
+        result = cmp.search(val)
+        return 0 if result is None else len(result.groups())
+
+    @staticmethod
+    def clear_val(val):
+        return val.lower().replace('\n', '')
+
     def pars_row_(self, row):
-        row = row.split('\t')  # формируем список из строки
-        [lambda i: i.encode().decode('utf-8') for i in row]
-        query = urlparse(row[5]).query  # ищем по параметрам get запроса
-        query = parse_qs(query).get('text', ['', ])[
-            0]  # получаем параметр text
-        query_set = set(query.split(' '))
+        row = ['', ] + row.split('\t')
+        row = list(map(Classification.clear_val, row))
+        row_dict = dict(zip_longest(self.columns, row, fillvalue=0))
+        row_dict['req_cmp'] = 0
 
-        intersection_words = self.word_set.intersection(query_set)
-        intersection_stops = self.stop_set.intersection(query_set)
+        req_word = self.compare(row_dict['request'], self.roots_w_ptrn)
+        req_stop = self.compare(row_dict['request'], self.roots_s_ptrn)
 
-        # если нет совпадений с целевым множеством или
-        # есть совпадения со множеством стоп-слов, то не создаем
-        # строку
-        row[5] = query
-        if not intersection_words or intersection_stops:
-            return query_set
-        intersection_len = len(intersection_words)
-
-        row.append(str(intersection_len))
-        row.append(','.join(list(query_set)))
-        # создаем объект Series для загрузки в таблицу
-        return pd.Series(row, index=self.columns)
+        if req_stop > 0 or req_word == 0:
+            return None
+        row_dict['req_cmp'] = req_word
+        return pd.Series(row_dict)
 
     def read_row_gen_(self):
         with open(self.logfile, 'rb') as f:
@@ -46,12 +54,9 @@ class Classification():
         with open(self.logfile, 'r', encoding=encoding) as tf:
             columns_ = tf.readline()  # из шапки формируем имена колонок
             columns_ = columns_.split('\t')
-            # добавляем колонку с количеством совпадений и уникальными
-            # значениями
-            self.columns = [i.replace('\n', '')
-                            for i in columns_] + ['intersection', 'query_set']
-            self.mainTable = pd.DataFrame(
-                columns=self.columns)  # создаем пустую таблицу
+            self.columns = ['req_cmp', ] + \
+                [i.replace('\n', '') for i in columns_]
+            self.create_table
             while True:
                 line = tf.readline()
                 if not line:
@@ -63,13 +68,14 @@ class Classification():
                 yield series
 
     def readLog(self, max_line=None, max_table_rows=300):
-        if not self.word_set:
-            print('word set is empty. Please use get_wordstat() first')
+        if not self.roots_w_ptrn:
+            print('roots pattern is empty. Please use get_word_pattern() first')
             return
         step = 1
 
         with open(self.result_file, 'w', encoding='utf-8') as f:
             pass
+
         for row in self.read_row_gen_():
 
             # если задан предел обработки строк
@@ -77,24 +83,29 @@ class Classification():
                 if step >= max_line:
                     break
 
-            if not isinstance(row, set):
+            if row is not None:
+                pass
                 if self.mainTable.shape[0] >= max_table_rows:
                     self.mainTable.to_csv(
-                        self.result_file, sep=';', mode='a', encoding='utf-8')
+                        self.result_file,
+                        index=False,
+                        header=False,
+                        sep=',',
+                        mode='a',
+                        encoding='utf-8')
                     self.clear_table
-
-                print(f'{row["query_set"]} - add to table')
                 self.mainTable = self.mainTable.append(row, ignore_index=True)
             step += 1
         self.mainTable.to_csv(
-            'data_frame.csv',
-            sep=';',
+            self.result_file,
+            index=False,
+            sep=',',
+            header=False,
             mode='a',
             encoding='utf-8')
 
-    def create_set(self, filename):
+    def create_pattern(self, filename):
         with open(filename, 'rb') as f:
-            # читаем первые 30 символов для определения кодировки.
             rawdata = f.read(30)
             result = chardet.detect(rawdata)
             encoding = result['encoding']
@@ -103,51 +114,35 @@ class Classification():
             words_ = self.word_pattern.findall(f.read())
 
         return_set = set()
-        # создание список из всех слов
-        retirn_list = [i.split(' ') for i in words_]
-        # создание множества из всех слов
-        [return_set.update(i) for i in retirn_list]
-        return {'set': return_set, 'list': retirn_list}
+        return_list = [i.split(' ') for i in words_]
+        [return_set.update(i) for i in return_list]
+        return_pattern = r'(' + '|'.join(list(return_set)) + ')'
+        return return_pattern
 
     # заполнение целевых данных из файлов
-    def get_wordset(self):
-        self.word_set.clear()
-        self.word_list.clear()
-        result = self.create_set(self.wordstat)
-        self.word_set = result['set']
-        self.word_list = result['list']
-
-        self.stop_list.clear()
-        self.stop_set.clear()
-        result = self.create_set(self.stopwords)
-        self.stop_set = result['set']
-        self.stop_list = result['list']
+    def get_word_pattern(self):
+        self.roots_w_ptrn = re.compile(self.create_pattern(self.roots_w))
+        self.roots_s_ptrn = re.compile(self.create_pattern(self.roots_s))
 
     def __init__(
             self,
-            wordstat='words.txt',
-            stopwords='stop.txt',
+            roots_w='req_words.txt',
+            roots_s='req_stop.txt',
             log='Log',
-            result_file='data_frame.csv'):
+            result_file='data_frame.txt'):
         self.word_pattern = re.compile(r'(.*)\n')
 
         # имена файлов
-        self.wordstat = wordstat
-        self.stopwords = stopwords
+        self.roots_w = roots_w
+        self.roots_s = roots_s
         self.logfile = log
         self.result_file = result_file
 
-        # переменные для хранения целевых данных в множестве
-        self.word_set = set()
-        self.stop_set = set()
-
-        # переменные для хранения целевых данных в списке
-        self.word_list = []
-        self.stop_list = []
-
-        self.mainTable = None
+        # переменные для хранения целевых данных
+        self.roots_w_ptrn = ""
+        self.roots_s_ptrn = ""
 
 
 A = Classification()
-A.get_wordset()
-A.readLog(max_line=1500, max_table_rows=50)
+A.get_word_pattern()
+A.readLog(max_table_rows=50)

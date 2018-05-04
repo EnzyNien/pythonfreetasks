@@ -123,7 +123,12 @@ class Classification():
     def get_word_pattern(self):
         self.roots_w_ptrn = re.compile(self.create_pattern(self.roots_w))
         self.roots_s_ptrn = re.compile(self.create_pattern(self.roots_s))
-
+    '''
+    req_words.txt must contain strings with the roots of the target words separated 
+    by a shift of the page
+    req_stop.txt must contain lines with the roots of stop words separated by a 
+    shift of the page
+    '''
     def __init__(
             self,
             roots_w='req_words.txt',
@@ -141,7 +146,6 @@ class Classification():
         # переменные для хранения целевых данных
         self.roots_w_ptrn = ""
         self.roots_s_ptrn = ""
-
 
 A = Classification()
 A.get_word_pattern()

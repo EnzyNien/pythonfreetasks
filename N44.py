@@ -1,4 +1,4 @@
-from PyQt5 import QtCore, QtGui, QtWidgets, QtSql, Qt
+from PyQt5 import QtCore, QtGui, QtWidgets, Qt
 import sys
 
 

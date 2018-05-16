@@ -58,7 +58,6 @@ class Synonyms():
             result = Synonyms.PATTERN.findall(synonyms)
 
         # collapse a list of tuples
-        # optional procedure
         name_set = set([i[0] for i in result])
         tup_idx = [(i[0], idx) for idx, i in enumerate(result)]
         result_ = []
@@ -73,9 +72,7 @@ class Synonyms():
         self.synonyms_dict = {
             item[0].lower(): self.make_values(
                 item[1]) for item in result_}
-        ##########################
-        # or simple
-        #self.synonyms_dict = {item[0].lower():self.make_values(item[1]) for item in result}
+
 
 if __name__ == '__main__':
     Synonyms().make_work

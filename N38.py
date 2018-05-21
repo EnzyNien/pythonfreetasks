@@ -3,6 +3,7 @@ class Time():
     __slots__ = '_hour', '_minute', '_second'
 
     @property
+    #процедура определения времени суток
     def times_of_day(self):
         NIGHT_1 = Time(0,0,1)
         NIGHT_2 = Time(6,0)
@@ -26,23 +27,28 @@ class Time():
             return "EVENING"
 
     @property
+    #процедура получения часа из закрытого атрибута
     def hour(self):
         return self._hour
 
     @property
+    #процедура получения минут из закрытого атрибута
     def minute(self):
         return self._minute
 
     @property
+    #процедура получения секунд из закрытого атрибута
     def second(self):
         return self._second
 
+    #процедура сравнения
     def _cmperror(x, y):
         x_ = type(x).__name__
         y_ = type(y).__name__
         raise TypeError(f"can't compare {x_} to {y_}")
 
     @staticmethod
+    #процедура форматироваанного вывода времени
     def _format_time(hh, mm, ss, timespec='auto'):
         other = ''
         if timespec == 'ampm':
@@ -88,6 +94,7 @@ class Time():
         raise TypeError('integer argument expected, got float')
 
     @staticmethod
+    #процедура проверки првильного заполнения
     def _check_time_fields(hour, minute, second):
         hour = Time._check_int_field(hour)
         minute = Time._check_int_field(minute)
@@ -101,9 +108,11 @@ class Time():
         return hour, minute, second
 
     @staticmethod
+    #глобальная процедура сравнения
     def _global_cmp(x, y):
         return 0 if x == y else 1 if x > y else -1
 
+    #процедура расчета разности времени
     def delta(self, other):
         assert isinstance(other, Time)
         s_ss = self._hour * 60 * 24 + self._minute * 60 + self._second
@@ -114,11 +123,13 @@ class Time():
         new_ss = (result - 60 * 24 * new_hh - new_mm * 60)
         return Time(new_hh, new_mm, new_ss)
 
+    #процедура сравнения
     def _cmp(self, other):
         assert isinstance(other, Time)
         return Time._global_cmp((self._hour, self._minute, self._second),
                     (other._hour, other._minute, other._second))
 
+    #метод создания нового класса
     def __new__(cls, hour=0, minute=0, second=0):
         hour, minute, second = Time._check_time_fields(hour, minute, second)
         self = object.__new__(cls)
@@ -127,6 +138,8 @@ class Time():
         self._second = second
         return self
 
+    #блок процедур переопределения методов
+    #сравнения величин
     def __eq__(self, other):
         if isinstance(other, Time):
             return self._cmp(other) == 0
@@ -156,7 +169,10 @@ class Time():
             return self._cmp(other) > 0
         else:
             Time._cmperror(self, other)
-
+    #конец блока
+            
+            
+    #переопределение процедуры печати
     def __str__(self, timespec='auto'):
         return Time._format_time(
             self._hour,

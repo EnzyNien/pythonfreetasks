@@ -4,7 +4,8 @@ import re
 
 class Levenstein():
 
-    FIND_WORD_PATTERN = re.compile(r'\w+')
+    FIND_WORD_PATTERN = re.compile(r'.+?(?=\s|$)')
+    BAD_SYNTAX = re.compile(r'\*|\^|\<|\>|\_')
 
     @staticmethod
     @lru_cache(maxsize=1024)
@@ -54,6 +55,8 @@ class Levenstein():
         word = ''
         sim = len(uWord)
         for part in parts:
+            if len(part_uWord) > len(part):
+                continue
             for idx in range(self.parts[part][0],self.parts[part][1]+1):
                 correct_word = self.dict[idx]
                 nsim = Levenstein.lev(correct_word, uWord)
@@ -82,7 +85,7 @@ class Levenstein():
             pass
 
     @staticmethod
-    def load_dict(file_name):
+    def load_dict(file_name,n_gramms):
         words = []
         parts = dict()
         with open(file_name, 'r', encoding='cp1251') as file_obj: 
@@ -90,7 +93,7 @@ class Levenstein():
             words.sort(key=lambda x: x)
             old_part = ''
             for idx, word in enumerate(words):
-                part = word[:3].lower()
+                part = word[:n_gramms].lower()
                 if part not in parts.keys():
                     res = parts.get(old_part,None)
                     if res is not None:
@@ -102,7 +105,7 @@ class Levenstein():
     def correct_text(self):
         self.correct_pair.clear()
         correct_row = ''
-        results =  Levenstein.load_dict(self.dict_file)
+        results =  Levenstein.load_dict(self.dict_file,self.n_gramms)
         self.dict = results.get('words',[])
         self.parts = results.get('parts',dict())
         Levenstein.clear_file(self.correct_file)
@@ -113,7 +116,9 @@ class Levenstein():
                 correct_row = row
                 words = Levenstein.FIND_WORD_PATTERN.findall(row)
                 for word in words:
-                    correct_word = self.find_it(word)
+                    word = word.strip()
+                    correct_word = Levenstein.BAD_SYNTAX.sub('',word)
+                    correct_word = self.find_it(correct_word)
                     correct_row = correct_row.replace(word,correct_word)
                 print(f'{row} => {correct_row}')
                 file_obj.write(f'{correct_row}\n')

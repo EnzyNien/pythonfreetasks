@@ -12,7 +12,7 @@ class hh():
 
     DEFAULT_AREA = [113]
     API_URL = 'https://api.hh.ru/'
-    PER_PAGE = 100
+    PER_PAGE = 30
 
     SALARY_AREAS = '/salary_statistics/dictionaries/salary_areas'
     VACANCIES = 'vacancies'
@@ -165,7 +165,7 @@ class hh():
                                                 self.PER_PAGE)] + self.compil_areas(self.areas_list)
         pages = 1
         page = 0
-        while page <= pages:
+        while page < pages:
             params = global_params.copy()
             params.append(('page', page))
             resp = self.req(params=params)

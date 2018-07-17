@@ -5,8 +5,6 @@ sp.init_printing(use_latex='mathjax')
 
 class Diff():
 
-    OPERATORS = ('sin', 'cos')
-
     @staticmethod
     def clean_data(data):
         data = data.replace('^', '**')
